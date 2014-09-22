@@ -13,17 +13,19 @@ body {
   shape-rendering: crispEdges;
 }
 
+<!--
 .x.axis path {
   display: none;
 }
+-->
 
-.line {
+.blueLine {
   fill: none;
   stroke: steelblue;
   stroke-width: 1.5px;
 }
 
-.thresholdline {
+.redLine {
   fill: none;
   stroke: red;
   stroke-width: 1.5px;
@@ -32,7 +34,7 @@ body {
 </style>
 
 <body>
-    <h2>TestWebSocket</h2>
+    <h2>Pressure Sensor</h2>
     <div id="message"></div>
 <script src="http://d3js.org/d3.v3.min.js"></script>
 <script src="/socket.io/socket.io.js"></script>
@@ -43,7 +45,9 @@ var socket = io.connect('http://192.168.1.6:8124/');
 
 socket.send("test");
 
-var temp = null;
+var blueData = null;
+var redData = null;
+
 var firstDataTime = null;
 
 socket.on('message', onMessage);
@@ -56,10 +60,19 @@ try{
 	var time = (new Date().getTime())/1000;
 	if(firstDataTime == null){
 		firstDataTime = time;
-		temp = d3.range(360).map(next);
+		blueData = d3.range(360).map(next);
+		redData = d3.range(360).map(next);
 	}
 	//var now = time - firstDataTime;
-	temp.push({measureTime:time, measureValue:message});
+	//var tempObj = JSON.parse(message.data);
+
+	if(message.lastIndexOf('r',0) === 0){
+		blueData.push({measureTime:time, measureValue:message.substr(1)});
+	}
+	
+	if(message.lastIndexOf('l',0) === 0){
+		redData.push({measureTime:time, measureValue:message.substr(1)});
+	}
 	redraw();
 }catch(e){
 	alert(e);
@@ -106,7 +119,7 @@ var svg = d3.select("body").append("svg")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
   
   //x.domain([0,100]);
-  y.domain([0,100]);
+  y.domain([0,500]);
   
   svg.append("g")
       .attr("class", "x axis")
@@ -121,13 +134,17 @@ var svg = d3.select("body").append("svg")
 
 function redraw(){
 
-    x.domain([firstDataTime,firstDataTime + 300]);
+    x.domain([firstDataTime,firstDataTime + 240]);
     //x.domain([0, 100]);
 
 	path.remove();
 	path = svg.append("path")
-			.attr("class", "line")
-			.attr("d", line(temp));
+		.attr("class", "redLine")
+		.attr("d", line(redData));
+	path = svg.append("path")
+		.attr("class", "blueLine")
+		.attr("d", line(blueData));
+
 }
 
 </script>

@@ -10,8 +10,7 @@ socket.on('connect',onConnect);
 function onConnect(){
 	socket.send("leap");
 	leap.loop({enableGestures: true},onLoop);
-	sendLeftArmMessage();
-	sendRightArmMessage();
+	sendArmMessage();
 	sendSlideMessage();
 	//process.exit(0);
 }
@@ -32,28 +31,18 @@ function onLoop(frame) {
   
 }
 
-var armLeftValue = null;
-var armRightValue = null;
+var armValue = null;
+var preValue = null;
 var slideValue = null;
 
-// 2秒毎にポーリングを実施し、値が設定されていればイベントを送信する
-function sendLeftArmMessage(){
-  if(armLeftValue != null){
-console.log("left = "+armLeftValue);
-   socket.send(armLeftValue);
-   armLeftValue = null;
+// 5秒毎にポーリングを実施し、値が設定されておりかつ前回と異なればイベントを送信する
+function sendArmMessage(){
+  if(armValue != null && armValue != preValue){
+console.log("arm = "+armValue);
+   socket.send(armValue);
+   preValue = armValue;
   }
-  setTimeout(sendLeftArmMessage, 2000);
-}
-
-// 2秒毎にポーリングを実施し、値が設定されていればイベントを送信する
-function sendRightArmMessage(){
-  if(armRightValue != null){
-console.log("right = " + armRightValue);
-   socket.send(armRightValue);
-   armRightValue = null;
-  }
-  setTimeout(sendRightArmMessage, 2000);
+  setTimeout(sendArmMessage, 5000);
 }
 
 // 3秒毎にポーリングを実施し、値が設定されていればイベントを送信する
@@ -70,16 +59,13 @@ function actionHand(frame){
   var hand = frame.hands[0];
   var tFinger = hand.thumb;
   var iFinger = hand.indexFinger;
-  var rFinger = hand.ringFinger;
 
-  distance1 = leap.vec3.distance(tFinger.tipPosition, iFinger.tipPosition);
-  distance2 = leap.vec3.distance(tFinger.tipPosition, rFinger.tipPosition);
+  distance = leap.vec3.distance(tFinger.tipPosition, iFinger.tipPosition);
 
   //console.log("distance1 = " + distance1);
-  checkFinger(1, distance1);
+  checkFinger(distance);
   //console.log("distance2 = " + distance2);
-  checkFinger(2, distance2);
-  
+
 }
 
 function gestureSwipe(gesture){
@@ -106,28 +92,20 @@ function gestureSwipe(gesture){
 
 //var preValue = null;
 
-function checkFinger(type, distance){
+function checkFinger(distance){
+//console.log("distance = "+distance);
  var value = null;
- if(type === 1){
-   if(distance < 30){
-     value = 3;
-   }else if(distance < 40){
-     value = 2;
-   }else if(distance < 60){
-     value = 1;
-   }
-   armRightValue = value;
-   //armRightValue = distance;
- }else{
-    if(distance < 50){
-     value = 6;
-   }else if(distance < 60){
-     value = 5;
-   }else if(distance < 130){
-     value = 4;
-   }
-   armLeftValue = value;
-   //armLeftValue = distance;
+ 
+ if(distance != null){
+  if(distance < 25){
+    value = 3;
+  }else if(distance >= 25 && distance < 50){
+    value = 2;
+  }else if(distance >= 50){
+    value = 1;
+  }
  }
+   armValue = value;
+//console.log("armValue = "+armValue);
 
 }

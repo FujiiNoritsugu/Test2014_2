@@ -2,6 +2,8 @@ var Cylon = require('cylon');
 var io = require('socket.io').listen(9080);
 var armQueue;
 var slideQueue;
+var rSensorValue;
+var lSensorValue;
 
 io.sockets.on('connection', onConnection);
 
@@ -33,15 +35,25 @@ Cylon.robot({
 	work: function(my){
 		every((2).second(), function(){ armFunction(my); });
 		every((3).second(), function(){ slideFunction(my); });
-		every((1).second(), function(){ sensorFunction(my); });
+		every((1).second(), function(){ sensorFunction1(my); });
+		every((1).second(), function(){ sensorFunction2(my); });
 	}
 	}).start();
 }
 
-var sensorFunction = function(my){
- var lValue = my.lSensor.analogRead();
+var sensorFunction1 = function(my){
+lSensorValue = my.lSensor.analogRead();
+// var lValue = my.lSensor.analogRead();
 //console.log("left value = " + lValue);
- var RValue = my.rSensor.analogRead();
+// var RValue = my.rSensor.analogRead();
+//console.log("right value = " + RValue);
+};
+
+var sensorFunction2 = function(my){
+rSensorValue = my.rSensor.analogRead();
+// var lValue = my.lSensor.analogRead();
+//console.log("left value = " + lValue);
+// var RValue = my.rSensor.analogRead();
 //console.log("right value = " + RValue);
 };
 
@@ -51,15 +63,12 @@ function armFunction(my){
 	
 	if(arm == 1){
 		my.lServo.angle(0);
+		my.rServo.angle(0);
 	}else if(arm == 2){
-		my.lServo.angle(90);
+		my.lServo.angle(140);
+		my.rServo.angle(140);
 	}else if(arm == 3){
 		my.lServo.angle(180);
-	}else if(arm == 4){
-		my.rServo.angle(0);
-	}else if(arm == 5){
-		my.rServo.angle(90);
-	}else if(arm == 6){
 		my.rServo.angle(180);
 	}
 
@@ -90,3 +99,53 @@ console.log("currentPosition="+currentPosition);
 	}
 	
 }
+//----------- for monitoring -----------------------------
+var app = require('http').createServer(handler);
+var io = require('socket.io').listen(app);
+
+var fs = require('fs');
+var html = fs.readFileSync('monitor.html', 'utf8');
+
+app.listen(8124);
+
+var target_socket;
+io.sockets.on('connection', function(socket){
+	console.log("connection");
+	socket.on('message', function(data){
+		console.log("message = "+data);
+		target_socket = this;
+	});
+	
+	if(target_socket != null){
+		target_socket.send("send data");
+		console.log("send data");
+	}
+	setInterval(tick, 1000);
+});
+
+function handler(req, res){
+ res.setHeader('Content-Type', 'text/html');
+ res.setHeader('Content-Length', Buffer.byteLength(html, 'utf8'));
+ res.end(html);
+}
+
+function tick(){
+ //var now = new Date();
+ //if(target_socket != null){
+ // target_socket.send(now % 60);
+ // console.log("send data in tick");
+ //}
+ if(target_socket != null){
+ 
+  if(rSensorValue != null){
+   target_socket.send("r"+rSensorValue);
+  }
+ 
+  if(lSensorValue != null){
+   target_socket.send("l"+lSensorValue);
+  }
+ 
+ }
+ 
+}
+
