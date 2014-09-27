@@ -13,12 +13,6 @@ body {
   shape-rendering: crispEdges;
 }
 
-<!--
-.x.axis path {
-  display: none;
-}
--->
-
 .blueLine {
   fill: none;
   stroke: steelblue;
@@ -53,9 +47,7 @@ var firstDataTime = null;
 socket.on('message', onMessage);
 
 function onMessage (message){
-//alert(message);
-//	var obj = document.getElementById("message");
-//	obj.innerHTML = message;
+
 try{
 	var time = (new Date().getTime())/1000;
 	if(firstDataTime == null){
@@ -63,8 +55,6 @@ try{
 		blueData = d3.range(360).map(next);
 		redData = d3.range(360).map(next);
 	}
-	//var now = time - firstDataTime;
-	//var tempObj = JSON.parse(message.data);
 
 	if(message.lastIndexOf('r',0) === 0){
 		blueData.push({measureTime:time, measureValue:message.substr(1)});
@@ -117,10 +107,9 @@ var svg = d3.select("body").append("svg")
     .attr("height", height + margin.top + margin.bottom)
   .append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-  
-  //x.domain([0,100]);
-  y.domain([0,500]);
-  
+
+  y.domain([0,350]);
+
   svg.append("g")
       .attr("class", "x axis")
       .attr("transform", "translate(0," + height + ")")
@@ -135,7 +124,6 @@ var svg = d3.select("body").append("svg")
 function redraw(){
 
     x.domain([firstDataTime,firstDataTime + 240]);
-    //x.domain([0, 100]);
 
 	path.remove();
 	path = svg.append("path")

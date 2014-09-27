@@ -1,6 +1,5 @@
 var leap = require('leapjs');
 var client = require('socket.io-client');
-//var socket = client.connect('http://54.238.172.248:9080');
 var socket = client.connect('http://192.168.1.6:9080');
 
 var swipeCount = 0;
@@ -12,7 +11,6 @@ function onConnect(){
 	leap.loop({enableGestures: true},onLoop);
 	sendArmMessage();
 	sendSlideMessage();
-	//process.exit(0);
 }
 
 function onLoop(frame) {
@@ -57,19 +55,12 @@ function sendSlideMessage(){
 
 function actionHand(frame){
   var hand = frame.hands[0];
-  var tFinger = hand.thumb;
-  var iFinger = hand.indexFinger;
-
-  distance = leap.vec3.distance(tFinger.tipPosition, iFinger.tipPosition);
-
-  //console.log("distance1 = " + distance1);
+  var distance = hand.sphereRadius;
   checkFinger(distance);
-  //console.log("distance2 = " + distance2);
 
 }
 
 function gestureSwipe(gesture){
-  //console.log("Swipe Gesture");
   if(gesture.direction[0] > 0){
     swipeDirection = "right";
     swipeCount ++;
@@ -79,33 +70,27 @@ function gestureSwipe(gesture){
   }
 
   if(swipeCount > 15){
-    //socket.send("right");
     slideValue = 'right';
     swipeCount = 0;
   }else if(swipeCount < -15){
-    //socket.send("left");
     slideValue = 'left';
     swipeCount = 0;
   }
-  //console.log(swipeDirection);
 }
 
-//var preValue = null;
-
 function checkFinger(distance){
-//console.log("distance = "+distance);
  var value = null;
  
- if(distance != null){
-  if(distance < 25){
-    value = 3;
-  }else if(distance >= 25 && distance < 50){
-    value = 2;
-  }else if(distance >= 50){
+  if(distance != null){
+  if(distance > 80){
     value = 1;
+  }else if(distance > 40){
+    value = 2;
+  }else {
+    value = 3;
   }
  }
+
    armValue = value;
-//console.log("armValue = "+armValue);
 
 }

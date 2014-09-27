@@ -43,18 +43,10 @@ Cylon.robot({
 
 var sensorFunction1 = function(my){
 lSensorValue = my.lSensor.analogRead();
-// var lValue = my.lSensor.analogRead();
-//console.log("left value = " + lValue);
-// var RValue = my.rSensor.analogRead();
-//console.log("right value = " + RValue);
 };
 
 var sensorFunction2 = function(my){
 rSensorValue = my.rSensor.analogRead();
-// var lValue = my.lSensor.analogRead();
-//console.log("left value = " + lValue);
-// var RValue = my.rSensor.analogRead();
-//console.log("right value = " + RValue);
 };
 
 function armFunction(my){
@@ -130,11 +122,7 @@ function handler(req, res){
 }
 
 function tick(){
- //var now = new Date();
- //if(target_socket != null){
- // target_socket.send(now % 60);
- // console.log("send data in tick");
- //}
+
  if(target_socket != null){
  
   if(rSensorValue != null){
